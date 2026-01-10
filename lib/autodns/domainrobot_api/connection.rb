@@ -89,9 +89,22 @@ module Autodns
 
       def extract_error_message(response)
         if response.body.is_a?(Hash)
-          response.body.dig("status", "text") ||
-            response.body.dig("messages")&.first&.dig("text") ||
-            response.body.to_s
+          messages = response.body["messages"]
+          if messages.is_a?(Array) && messages.any?
+            # Collect all message texts, including nested objects info
+            messages.map do |msg|
+              text = msg["text"]
+              objects = msg["objects"]
+              if objects.is_a?(Array) && objects.any?
+                obj_info = objects.map { |o| "#{o['type']}: #{o['value']}" }.join(", ")
+                "#{text} (#{obj_info})"
+              else
+                text
+              end
+            end.compact.join("; ")
+          else
+            response.body.dig("status", "text") || response.body.to_s
+          end
         else
           response.body.to_s
         end

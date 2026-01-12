@@ -5,8 +5,8 @@ require_relative 'lib/autodns/domainrobot_api/version'
 Gem::Specification.new do |spec|
   spec.name = 'autodns-domainrobot_api'
   spec.version = Autodns::DomainrobotApi::VERSION
-  spec.authors = ['Teal']
-  spec.email = ['teal@starsong.dev']
+  spec.authors = ['Teal Bauer']
+  spec.email = ['rubygems@teal.is']
 
   spec.summary = 'Ruby client for the InternetX AutoDNS Domain Robot REST API'
   spec.description = 'A Ruby gem for interacting with the InternetX AutoDNS Domain Robot REST API (api.autodns.com/v1). Supports domain management, contacts, DNS zones, certificates, and more.'

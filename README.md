@@ -60,6 +60,26 @@ domain.ownerc   # => Contact (registrant)
 domain.adminc   # => Contact (admin)
 domain.techc    # => Contact (technical)
 domain.zonec    # => Contact (zone/billing)
+
+# Advanced domain operations
+domain.renew!                          # Renew domain
+domain.create_authinfo1!               # Generate transfer key
+domain.delete_authinfo1!               # Delete transfer key
+domain.send_authinfo_to_owner!         # Email authinfo to registrant
+domain.add_to_domain_safe!             # Enable transfer lock
+domain.remove_from_domain_safe!        # Disable transfer lock
+domain.dnssec_key_rollover!            # Trigger DNSSEC key rollover
+domain.update_comment!("My comment")   # Update domain comment
+domain.change_owner!(new_contact)      # Change registrant
+domain.update_status!("clientHold")    # Update registry status
+domain.restore!                        # Restore deleted domain
+
+# Class methods for domain operations
+Autodns::DomainrobotApi::Domain.transfer(client, domain_data)
+Autodns::DomainrobotApi::Domain.import(client, domain_data)
+Autodns::DomainrobotApi::Domain.trade(client, domain_data)
+Autodns::DomainrobotApi::Domain.autodelete_list(client)
+Autodns::DomainrobotApi::Domain.restore_list(client)
 ```
 
 ### Contacts
@@ -93,6 +113,24 @@ zone.records          # => [ZoneRecord, ...]
 zone.records.each do |record|
   puts "#{record.type} #{record.name} -> #{record.value}"
 end
+
+# Zone stream operations (incremental updates)
+zone.add_records!([
+  { name: "www", type: "A", value: "1.2.3.4", ttl: 3600 }
+])
+zone.remove_records!([
+  { name: "old", type: "A", value: "5.6.7.8" }
+])
+zone.stream!(
+  adds: [{ name: "new", type: "CNAME", value: "target.com." }],
+  removes: [{ name: "old", type: "A", value: "1.2.3.4" }]
+)
+
+# Partial zone update
+zone.patch!(soaEmail: "admin@example.com")
+
+# Import existing zone
+Autodns::DomainrobotApi::Zone.import(client, "example.com", "ns1.example.com")
 ```
 
 ### SSL Certificates
@@ -105,6 +143,33 @@ cert.san              # Subject Alternative Names
 cert.valid_from
 cert.valid_until
 cert.status
+
+# Certificate operations
+cert.reissue!                         # Reissue with new CSR
+cert.renew!                           # Renew certificate
+cert.update_comment!("Production")    # Update comment
+
+# Prepare order (generates DCV data)
+dcv_data = Autodns::DomainrobotApi::Certificate.prepare_order(client, {
+  plain: csr_content,
+  product: "BASIC_SSL"
+})
+
+# Order certificate in realtime (DV certs only)
+cert = Autodns::DomainrobotApi::Certificate.realtime(client, certificate_data)
+```
+
+### SSL Contacts
+
+```ruby
+# List SSL contacts
+client.ssl_contacts.all
+
+# Find an SSL contact
+ssl_contact = client.ssl_contacts.find(123)
+ssl_contact.full_name
+ssl_contact.organization
+ssl_contact.email
 ```
 
 ### Jobs (Async Operations)
@@ -126,6 +191,93 @@ job.running?
 ```ruby
 # Retrieve notifications
 client.poll_messages.all
+```
+
+### WHOIS Lookup
+
+```ruby
+# Single domain lookup
+whois = client.whois("example.com")
+whois.domain
+whois.status          # => "FREE", "ASSIGNED", etc.
+whois.available?      # => true/false
+
+# Multiple domain lookup
+results = client.whois_multi(["example.com", "example.net", "example.org"])
+results.each do |w|
+  puts "#{w.domain}: #{w.status}"
+end
+```
+
+### Domain Studio (Domain Suggestions)
+
+```ruby
+# Search for domain suggestions
+suggestions = client.domain_studio("mybusiness")
+suggestions.each do |s|
+  puts "#{s.domain} - #{s.available? ? 'Available' : 'Taken'}"
+end
+
+# With options
+suggestions = client.domain_studio("mybusiness",
+  only_available: true,
+  currency: "EUR",
+  ignore_premium: true
+)
+
+# Or use class method directly
+Autodns::DomainrobotApi::DomainStudio.search(client, "keyword", options)
+```
+
+### URL Redirects
+
+```ruby
+# List redirects
+client.redirects.all
+
+# Find a redirect
+redirect = client.redirects.find(123)
+redirect.source
+redirect.target
+redirect.redirect_type    # => 301, 302
+```
+
+### Transfer Out
+
+```ruby
+# List outgoing transfer requests
+client.transfer_outs.all
+
+# Handle transfer request
+transfer = client.transfer_outs.find("example.com")
+transfer.domain
+transfer.status
+transfer.gaining_registrar
+transfer.ack_deadline
+
+# Approve or deny
+transfer.approve!
+transfer.deny!
+```
+
+### Domain Cancelation
+
+```ruby
+# Create a cancelation request
+cancelation = Autodns::DomainrobotApi::DomainCancelation.create(client, "example.com",
+  type: "DELETE",
+  exec_date: Date.today + 30
+)
+
+# Get cancelation info
+cancelation = Autodns::DomainrobotApi::DomainCancelation.info(client, "example.com")
+
+# List all cancelations
+cancelations = Autodns::DomainrobotApi::DomainCancelation.list(client)
+
+# Update or delete cancelation
+cancelation.save!
+cancelation.delete!
 ```
 
 ## Rate Limiting

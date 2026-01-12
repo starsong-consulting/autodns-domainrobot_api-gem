@@ -4,12 +4,12 @@ module Autodns
   module DomainrobotApi
     # Handles HTTP communication with the AutoDNS REST API
     class Connection
-      BASE_URL = "https://api.autodns.com/v1"
-      DEMO_URL = "https://api.demo.autodns.com/v1"
+      BASE_URL = 'https://api.autodns.com/v1'
+      DEMO_URL = 'https://api.demo.autodns.com/v1'
 
       attr_reader :url, :context, :debug
 
-      def initialize(url:, username:, password:, context: "4", debug: false)
+      def initialize(url:, username:, password:, context: '4', debug: false)
         @url = url
         @username = username
         @password = password
@@ -25,8 +25,8 @@ module Autodns
       end
 
       def test_connection
-        response = get("hello")
-        response[:status] == "success"
+        response = get('hello')
+        response[:status] == 'success'
       rescue Error
         false
       end
@@ -38,9 +38,9 @@ module Autodns
           f.request :json
           f.response :json
           f.adapter Faraday.default_adapter
-          f.headers["User-Agent"] = "autodns-domainrobot_api/#{VERSION}"
-          f.headers["X-Domainrobot-Context"] = @context
-          f.headers["Authorization"] = "Basic #{Base64.strict_encode64("#{@username}:#{@password}")}"
+          f.headers['User-Agent'] = "autodns-domainrobot_api/#{VERSION}"
+          f.headers['X-Domainrobot-Context'] = @context
+          f.headers['Authorization'] = "Basic #{Base64.strict_encode64("#{@username}:#{@password}")}"
         end
       end
 
@@ -62,11 +62,11 @@ module Autodns
         when 200..299
           parse_response(response)
         when 401
-          raise AuthenticationError, "Invalid credentials"
+          raise AuthenticationError, 'Invalid credentials'
         when 404
-          raise NotFoundError, "Resource not found"
+          raise NotFoundError, 'Resource not found'
         when 429
-          raise RateLimitError, "Rate limit exceeded (3 requests/second)"
+          raise RateLimitError, 'Rate limit exceeded (3 requests/second)'
         else
           error_message = extract_error_message(response)
           raise Error, "API error (#{response.status}): #{error_message}"
@@ -78,32 +78,32 @@ module Autodns
         return { data: [], status: nil } unless body.is_a?(Hash)
 
         {
-          status: body.dig("status", "type"),
-          status_text: body.dig("status", "text"),
-          stid: body["stid"],
-          data: body["data"] || [],
-          object: body["object"],
-          ctid: body["ctid"]
+          status: body.dig('status', 'type'),
+          status_text: body.dig('status', 'text'),
+          stid: body['stid'],
+          data: body['data'] || [],
+          object: body['object'],
+          ctid: body['ctid']
         }
       end
 
       def extract_error_message(response)
         if response.body.is_a?(Hash)
-          messages = response.body["messages"]
+          messages = response.body['messages']
           if messages.is_a?(Array) && messages.any?
             # Collect all message texts, including nested objects info
             messages.map do |msg|
-              text = msg["text"]
-              objects = msg["objects"]
+              text = msg['text']
+              objects = msg['objects']
               if objects.is_a?(Array) && objects.any?
-                obj_info = objects.map { |o| "#{o['type']}: #{o['value']}" }.join(", ")
+                obj_info = objects.map { |o| "#{o['type']}: #{o['value']}" }.join(', ')
                 "#{text} (#{obj_info})"
               else
                 text
               end
-            end.compact.join("; ")
+            end.compact.join('; ')
           else
-            response.body.dig("status", "text") || response.body.to_s
+            response.body.dig('status', 'text') || response.body.to_s
           end
         else
           response.body.to_s

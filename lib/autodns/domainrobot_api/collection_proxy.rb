@@ -48,7 +48,7 @@ module Autodns
       # Terminal methods
 
       def all
-        @cached_results ||= fetch_all
+        @all ||= fetch_all
       end
 
       def each(&block)
@@ -101,7 +101,7 @@ module Autodns
 
       def count
         response = search(limit: 1, offset: 0)
-        response[:object]&.dig("summary") || response[:data]&.length || 0
+        response[:object]&.dig('summary') || response[:data]&.length || 0
       end
 
       private
@@ -161,7 +161,7 @@ module Autodns
           {
             key: key.to_s,
             value: value,
-            operator: value.to_s.include?("*") ? "LIKE" : "EQUAL"
+            operator: value.to_s.include?('*') ? 'LIKE' : 'EQUAL'
           }
         end
       end

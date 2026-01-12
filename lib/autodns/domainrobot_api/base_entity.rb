@@ -10,7 +10,7 @@ module Autodns
       # Define the API resource path for this entity
       # Override in subclasses as needed
       def self.resource_path
-        ActiveSupport::Inflector.underscore(name.split("::").last)
+        ActiveSupport::Inflector.underscore(name.split('::').last)
       end
 
       def initialize(data = {}, client: nil)
@@ -28,11 +28,11 @@ module Autodns
       end
 
       def to_s
-        "#{self.class.name.split("::").last} ##{id}"
+        "#{self.class.name.split('::').last} ##{id}"
       end
 
       def id
-        attributes[:id] || attributes["id"]
+        attributes[:id] || attributes['id']
       end
 
       def ==(other)
@@ -61,7 +61,7 @@ module Autodns
       def save
         return self if id.nil? || client.nil?
 
-        collection_name = ActiveSupport::Inflector.tableize(self.class.name.split("::").last).to_sym
+        collection_name = ActiveSupport::Inflector.tableize(self.class.name.split('::').last).to_sym
 
         if client.respond_to?(collection_name)
           updated = client.send(collection_name).update(id, attributes)
@@ -83,7 +83,7 @@ module Autodns
       def destroy
         return false if id.nil? || client.nil?
 
-        collection_name = ActiveSupport::Inflector.tableize(self.class.name.split("::").last).to_sym
+        collection_name = ActiveSupport::Inflector.tableize(self.class.name.split('::').last).to_sym
 
         if client.respond_to?(collection_name)
           client.send(collection_name).delete(id)
@@ -97,7 +97,7 @@ module Autodns
       def reload
         return self if id.nil? || client.nil?
 
-        collection_name = ActiveSupport::Inflector.tableize(self.class.name.split("::").last).to_sym
+        collection_name = ActiveSupport::Inflector.tableize(self.class.name.split('::').last).to_sym
 
         if client.respond_to?(collection_name)
           reloaded = client.send(collection_name).find(id)
@@ -121,7 +121,7 @@ module Autodns
           target_class_name = target_class_name_override || ActiveSupport::Inflector.classify(association_name.to_s)
           collection_name = ActiveSupport::Inflector.tableize(target_class_name).to_sym
 
-          if client&.respond_to?(collection_name)
+          if client.respond_to?(collection_name)
             fetched = client.send(collection_name).find(assoc_id)
             return @_association_cache[association_name] = fetched
           end
@@ -142,13 +142,13 @@ module Autodns
 
         target_class_name = target_class_name_override || ActiveSupport::Inflector.classify(association_name.to_s)
         collection_name = ActiveSupport::Inflector.tableize(target_class_name).to_sym
-        fk = foreign_key || :"#{ActiveSupport::Inflector.underscore(self.class.name.split("::").last)}_id"
+        fk = foreign_key || :"#{ActiveSupport::Inflector.underscore(self.class.name.split('::').last)}_id"
 
-        if client&.respond_to?(collection_name)
-          @_association_cache[association_name] = client.send(collection_name).where(fk => id)
-        else
-          @_association_cache[association_name] = []
-        end
+        @_association_cache[association_name] = if client.respond_to?(collection_name)
+                                                  client.send(collection_name).where(fk => id)
+                                                else
+                                                  []
+                                                end
       end
 
       private
@@ -183,16 +183,16 @@ module Autodns
       end
 
       def entity_class_for(data, key_hint = nil)
-        type_name = data[:type] || data["type"]
+        type_name = data[:type] || data['type']
 
         if type_name.nil? && key_hint
           type_name = case key_hint
                       when :ownerc, :adminc, :techc, :zonec
-                        "Contact"
+                        'Contact'
                       when :nameServers, :name_servers
-                        "NameServer"
+                        'NameServer'
                       when :resourceRecords, :resource_records
-                        "ZoneRecord"
+                        'ZoneRecord'
                       else
                         ActiveSupport::Inflector.singularize(key_hint.to_s)
                       end
@@ -202,11 +202,9 @@ module Autodns
 
         class_name = ActiveSupport::Inflector.classify(type_name)
 
-        if ENTITIES.key?(class_name)
-          ENTITIES[class_name]
-        else
-          nil
-        end
+        return unless ENTITIES.key?(class_name)
+
+        ENTITIES[class_name]
       end
     end
   end

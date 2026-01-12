@@ -5,7 +5,7 @@ module Autodns
     # Represents a poll message (notification) in AutoDNS
     class PollMessage < BaseEntity
       def self.resource_path
-        "poll"
+        'poll'
       end
 
       # Message ID
@@ -35,7 +35,7 @@ module Autodns
 
       # Job related to this message
       def job
-        association(:job, "Job")
+        association(:job, 'Job')
       end
 
       # Created timestamp

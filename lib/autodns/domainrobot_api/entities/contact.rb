@@ -5,12 +5,12 @@ module Autodns
     # Represents a contact (handle) in AutoDNS
     class Contact < BaseEntity
       def self.resource_path
-        "contact"
+        'contact'
       end
 
       # Full name (combined first + last)
       def full_name
-        [fname, lname].compact.reject(&:empty?).join(" ")
+        [fname, lname].compact.reject(&:empty?).join(' ')
       end
 
       # First name

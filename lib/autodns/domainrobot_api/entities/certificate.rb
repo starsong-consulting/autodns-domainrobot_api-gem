@@ -5,7 +5,7 @@ module Autodns
     # Represents an SSL/TLS certificate in AutoDNS
     class Certificate < BaseEntity
       def self.resource_path
-        "certificate"
+        'certificate'
       end
 
       # Certificate product type
@@ -71,12 +71,12 @@ module Autodns
 
       # Technical contact
       def admin_contact
-        association(:adminContact, "Contact")
+        association(:adminContact, 'Contact')
       end
 
       # Organization contact
       def org_contact
-        association(:orgContact, "Contact")
+        association(:orgContact, 'Contact')
       end
 
       # Created timestamp
@@ -91,6 +91,58 @@ module Autodns
 
       def to_s
         "Certificate ##{id} (#{common_name})"
+      end
+
+      # --- Certificate Operations ---
+
+      # Reissue a certificate with new CSR
+      # @return [Job] the async job
+      def reissue!
+        raise ArgumentError, 'Certificate ID required' unless id
+
+        response = client.put("#{self.class.resource_path}/#{id}", body: to_h)
+        Job.new(response[:data]&.first || {}, client: client)
+      end
+
+      # Renew a certificate
+      # @return [Job] the async job
+      def renew!
+        raise ArgumentError, 'Certificate ID required' unless id
+
+        response = client.put("#{self.class.resource_path}/#{id}/_renew", body: to_h)
+        Job.new(response[:data]&.first || {}, client: client)
+      end
+
+      # Update certificate comment
+      # @param comment [String] the new comment
+      def update_comment!(comment)
+        raise ArgumentError, 'Certificate ID required' unless id
+
+        client.put("#{self.class.resource_path}/#{id}/_comment", body: { comment: comment })
+        true
+      end
+
+      # --- Class methods for certificate operations ---
+
+      class << self
+        # Order a certificate in realtime (for certain DV products only)
+        # @param client [Client] the API client
+        # @param certificate_data [Hash] certificate order data
+        # @return [Certificate] the issued certificate
+        def realtime(client, certificate_data)
+          response = client.post("#{resource_path}/_realtime", body: certificate_data)
+          new(response[:data]&.first || {}, client: client)
+        end
+
+        # Prepare order - check CSR and generate DCV data
+        # Should be called before create, realtime, reissue, or renew
+        # @param client [Client] the API client
+        # @param certificate_data [Hash] certificate data with CSR
+        # @return [Hash] prepared certificate data with DCV info
+        def prepare_order(client, certificate_data)
+          response = client.post("#{resource_path}/_prepareOrder", body: certificate_data)
+          response[:data]&.first || {}
+        end
       end
 
       private

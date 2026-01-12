@@ -19,7 +19,7 @@ module Autodns
     class Client
       attr_reader :connection
 
-      def initialize(url: Connection::BASE_URL, username:, password:, context: "4", debug: false)
+      def initialize(username:, password:, url: Connection::BASE_URL, context: '4', debug: false)
         @connection = Connection.new(
           url: url,
           username: username,
@@ -39,6 +39,28 @@ module Autodns
 
       def test_connection
         @connection.test_connection
+      end
+
+      # WHOIS lookup for a single domain
+      # @param domain [String] domain name to lookup
+      # @return [Whois] WHOIS result
+      def whois(domain)
+        Whois.single(self, domain)
+      end
+
+      # WHOIS lookup for multiple domains
+      # @param domains [Array<String>] domain names to lookup
+      # @return [Array<Whois>] array of WHOIS results
+      def whois_multi(domains)
+        Whois.multi(self, domains)
+      end
+
+      # DomainStudio search for domain suggestions
+      # @param search_token [String] keyword or domain name to search
+      # @param options [Hash] optional search options
+      # @return [Array<DomainStudio>] array of domain suggestions
+      def domain_studio(search_token, options = {})
+        DomainStudio.search(self, search_token, options)
       end
 
       # Dynamic collection access

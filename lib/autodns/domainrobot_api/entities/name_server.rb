@@ -5,7 +5,7 @@ module Autodns
     # Represents a nameserver configuration
     class NameServer < BaseEntity
       def self.resource_path
-        "nameserver"
+        'nameserver'
       end
 
       # Nameserver hostname

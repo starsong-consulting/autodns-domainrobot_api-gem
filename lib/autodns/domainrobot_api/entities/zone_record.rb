@@ -5,7 +5,7 @@ module Autodns
     # Represents a DNS resource record
     class ZoneRecord < BaseEntity
       def self.resource_path
-        "zone"
+        'zone'
       end
 
       # Record name (subdomain or @ for apex)

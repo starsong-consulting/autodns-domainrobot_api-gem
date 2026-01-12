@@ -5,7 +5,7 @@ module Autodns
     # Represents an async job in AutoDNS
     class Job < BaseEntity
       def self.resource_path
-        "job"
+        'job'
       end
 
       # Job status (e.g., RUNNING, SUCCESS, FAILED)
@@ -53,15 +53,15 @@ module Autodns
       end
 
       def successful?
-        status == "SUCCESS"
+        status == 'SUCCESS'
       end
 
       def failed?
-        status == "FAILED"
+        status == 'FAILED'
       end
 
       def running?
-        status == "RUNNING"
+        status == 'RUNNING'
       end
 
       def to_s

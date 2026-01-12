@@ -26,7 +26,7 @@ module Autodns
 
       def test_connection
         response = get('hello')
-        response[:status] == 'success'
+        response[:status]&.downcase == 'success'
       rescue Error
         false
       end

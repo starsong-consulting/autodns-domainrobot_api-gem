@@ -85,7 +85,7 @@ module Autodns
       # @param removes [Array<Hash>] records to remove
       # @return [Zone] updated zone
       def stream!(adds: [], removes: [])
-        body = { adds: adds, removes: removes }
+        body = { adds: adds, rems: removes }
         response = client.post("#{self.class.resource_path}/#{origin}/_stream", body: body)
         Zone.new(response[:data]&.first || {}, client: client)
       end
